@@ -107,6 +107,7 @@ pending_approval = None
 pending_asset_request = None
 pending_visual_confirmation = None
 pending_post_confirmation = None
+waiting_for_linkedin_creds = False
 
 
 # ---- STATE DEFINITIONS ----
@@ -507,7 +508,7 @@ async def on_ready():
 @bot.event
 async def on_message(message):
     global current_draft, pending_approval, pending_asset_request
-    global pending_visual_confirmation, pending_post_confirmation
+    global pending_visual_confirmation, pending_post_confirmation, waiting_for_linkedin_creds
     
     if message.author == bot.user:
         return
@@ -517,6 +518,11 @@ async def on_message(message):
         
         if message.content.startswith('/'):
             await bot.process_commands(message)
+            return
+        
+        # Skip storing if waiting for LinkedIn credentials
+        if waiting_for_linkedin_creds:
+            # Let the linkedin command handler process this
             return
         
         # Handle CONFIRM/RESCHEDULE/CANCEL
@@ -1123,7 +1129,7 @@ async def post_command(ctx, action: str = None):
 @bot.command(name='linkedin')
 async def linkedin_command(ctx, action: str = None):
     """LinkedIn management"""
-    global linkedin_poster
+    global linkedin_poster, waiting_for_linkedin_creds
     
     if not isinstance(ctx.channel, discord.DMChannel):
         return
@@ -1131,37 +1137,44 @@ async def linkedin_command(ctx, action: str = None):
     if action == 'login':
         await ctx.send(
             "🔐 **LinkedIn Login**\n\n"
-            "Reply: `email@example.com password`\n"
-            "(Message deleted after login)"
+            "Reply with: `your-email@example.com YourPassword`\n\n"
+            "⚠️ Use your actual LinkedIn email and password\n"
+            "⚠️ Message will NOT be stored in memory"
         )
         
+        # Set flag to prevent storing credentials
+        waiting_for_linkedin_creds = True
+        
         def check(m):
-            return m.author == ctx.author and isinstance(m.channel, discord.DMChannel)
+            return m.author == ctx.author and isinstance(m.channel, discord.DMChannel) and not m.content.startswith('/')
         
         try:
             creds_msg = await bot.wait_for('message', check=check, timeout=300)
             
             parts = creds_msg.content.strip().split(' ', 1)
             if len(parts) != 2:
-                await ctx.send("❌ Format: `email password`")
+                await ctx.send("❌ Invalid format\n\nUse: `email password`")
+                waiting_for_linkedin_creds = False
                 return
             
             email, password = parts
-            await creds_msg.delete()
             
-            await ctx.send("🔄 Logging in...")
+            await ctx.send("🔄 **Logging in to LinkedIn...**\n\nThis may take 30-60 seconds...")
             
             if not linkedin_poster:
                 linkedin_poster = LinkedInPoster()
                 await linkedin_poster.init_browser()
             
             await linkedin_poster.login(email, password)
-            await ctx.send("✅ **Logged in**")
+            await ctx.send("✅ **Logged in successfully!**\n\nSession saved for future use.")
             
         except asyncio.TimeoutError:
-            await ctx.send("⏱️ Timeout")
+            await ctx.send("⏱️ **Timeout**\n\nTry `/linkedin login` again")
         except Exception as e:
-            await ctx.send(f"❌ Failed: {e}")
+            await ctx.send(f"❌ **Login failed**\n\nError: {e}\n\nTry again with `/linkedin login`")
+        finally:
+            # Always clear the flag
+            waiting_for_linkedin_creds = False
     
     elif action == 'status':
         if not linkedin_poster:

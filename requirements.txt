@@ -4,4 +4,4 @@ google-auth
 APScheduler
 google-genai
 google-api-python-client
-playwright==1.41.0
+playwright>=1.48.0

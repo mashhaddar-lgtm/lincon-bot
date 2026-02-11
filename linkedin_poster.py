@@ -53,12 +53,13 @@ class LinkedInPoster:
             # Might be on 2FA or verification page
             current_url = self.page.url
             if 'checkpoint' in current_url or 'challenge' in current_url:
-                print("2FA or verification required - waiting 60 seconds for manual completion")
-                await asyncio.sleep(60)
+                print("2FA or verification required - waiting 3 minutes for email/SMS completion")
+                # Wait 3 minutes for user to check email/phone and enter code
+                await asyncio.sleep(180)
                 
                 # Check if we made it to feed
                 if 'feed' not in self.page.url:
-                    raise Exception("Login incomplete - please check 2FA/verification")
+                    raise Exception("Login incomplete - 2FA/verification not completed in time. Check your email/phone for LinkedIn code and try again.")
         
         # Save session
         await self.context.storage_state(path=self.session_file)

@@ -45,7 +45,7 @@ except Exception as e:
     raise e
 
 try:
-    spreadsheet = client.open_by_key("SPREADSHEET_ID")
+    spreadsheet = client.open_by_key("15Wn6cP6Jom_-uIwLGLY_RlvwQZNn17-aS31Xbr5U0qo")
     brain_sheet = spreadsheet.sheet1  # LinCon_Brain
     print("LinCon_Brain sheet opened successfully")
     
@@ -99,7 +99,7 @@ linkedin_poster = None
 scheduler = AsyncIOScheduler()
 
 # Your Discord User ID (REPLACE THIS)
-MY_USER_ID = "YOUR_DISCORD_USER_ID_HERE"
+MY_USER_ID = "895300631680655420"
 
 # State tracking
 current_draft = None

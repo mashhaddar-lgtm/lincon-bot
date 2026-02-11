@@ -45,7 +45,7 @@ except Exception as e:
     raise e
 
 try:
-    spreadsheet = client.open_by_key("15Wn6cP6Jom_-uIwLGLY_RlvwQZNn17-aS31Xbr5U0qo")
+    spreadsheet = client.open_by_key("SPREADSHEET_ID")
     brain_sheet = spreadsheet.sheet1  # LinCon_Brain
     print("LinCon_Brain sheet opened successfully")
     
@@ -99,7 +99,7 @@ linkedin_poster = None
 scheduler = AsyncIOScheduler()
 
 # Your Discord User ID (REPLACE THIS)
-MY_USER_ID = "895300631680655420"
+MY_USER_ID = "YOUR_DISCORD_USER_ID_HERE"
 
 # State tracking
 current_draft = None
@@ -1139,7 +1139,11 @@ async def linkedin_command(ctx, action: str = None):
             "🔐 **LinkedIn Login**\n\n"
             "Reply with: `your-email@example.com YourPassword`\n\n"
             "⚠️ Use your actual LinkedIn email and password\n"
-            "⚠️ Message will NOT be stored in memory"
+            "⚠️ Message will NOT be stored in memory\n\n"
+            "**If you have 2FA enabled:**\n"
+            "After you send credentials, LinkedIn will send a verification code to your email/phone.\n"
+            "You'll have **3 minutes** to check and enter the code in LinkedIn's website.\n"
+            "The bot will wait for you to complete verification."
         )
         
         # Set flag to prevent storing credentials
@@ -1159,7 +1163,16 @@ async def linkedin_command(ctx, action: str = None):
             
             email, password = parts
             
-            await ctx.send("🔄 **Logging in to LinkedIn...**\n\nThis may take 30-60 seconds...")
+            await ctx.send(
+                "🔄 **Logging in to LinkedIn...**\n\n"
+                "⏱️ This may take up to 3 minutes if 2FA is required.\n\n"
+                "**If LinkedIn sends you a verification code:**\n"
+                "1. Check your email/phone NOW\n"
+                "2. Open the LinkedIn verification link or enter the code\n"
+                "3. Complete verification within 3 minutes\n"
+                "4. The bot will detect when you're logged in\n\n"
+                "Please wait..."
+            )
             
             if not linkedin_poster:
                 linkedin_poster = LinkedInPoster()
